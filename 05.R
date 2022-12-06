@@ -1,7 +1,7 @@
 library(stringr)
+library(purrr)
 procedure <- readLines("05_input.txt")[-(1:10)]
 starting_stacks <- read.fwf("05_input.txt", widths = rep(4,9), n = 8)
-
 
 starting_stacks_clean <- lapply(starting_stacks, str_remove_all, pattern = "\\s+|\\[|\\]")
 
@@ -11,7 +11,9 @@ starting_stacks_clean <- lapply(starting_stacks_clean, function(stack){
 })
 
 
-move <- function(instruction, stacks){
+# Part 1 ------------------------------------------------------------------
+
+move <- function(stacks, instruction, crate_mover=9000){
   parsed <- str_extract_all(instruction,"\\d+")
   parsed <- parsed[[1]] |> as.integer()
 
@@ -20,12 +22,24 @@ move <- function(instruction, stacks){
   to <-  parsed[3]
   crates <-  stacks[[from]][seq(n)]
    stacks[[from]] <- stacks[[from]][-seq(n)]
-   stacks[[to]] <-  c(rev(crates), stacks[[to]])
+  if(crate_mover == 9000){
+    crates <- rev(crates)
+  }
+   stacks[[to]] <-  c(crates, stacks[[to]])
    stacks
 }
-debugonce(move)
 
-move(procedure[1], starting_stacks_clean)
 
-move(6,9,3, starting_stacks_clean)
+final_stack <- purrr::reduce(procedure, move,  .init = starting_stacks_clean)
+
+sapply(final_stack,`[`, 1) |>
+  paste0(collapse = "")
+
+
+# Part 2 ------------------------------------------------------------------
+
+final_stack <- purrr::reduce(procedure, move, crate_mover = 9001,  .init = starting_stacks_clean)
+
+sapply(final_stack,`[`, 1) |>
+  paste0(collapse = "")
 
